@@ -1,0 +1,12 @@
+# r2db() adds data to database -------------------------------------------------
+r2db <- function(data, table, db="swapi_db.duckdb", replace=TRUE){
+  
+  # For now, just remove the nested data
+  lists <- names(data)[sapply(data, class) == "list"]
+  data <- data[, !(names(data) %in% lists)]
+  
+  # Add data to db
+  con <- dbConnect(duckdb(), dbdir=db)
+  dbWriteTable(conn=con, name=table, value=data, overwrite=replace)
+  dbDisconnect(conn=con, shutdown=TRUE)
+}

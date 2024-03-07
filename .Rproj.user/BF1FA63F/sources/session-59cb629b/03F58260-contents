@@ -1,0 +1,24 @@
+library(duckdb)
+library(data.table)
+
+# Get the data
+con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+films <- dbGetQuery(con, "SELECT * FROM stg_films")
+dbDisconnect(conn=con, shutdown=TRUE)
+
+
+# Extract year
+setDT(films)
+films[, year:=year(release_date)]
+
+
+# Write to database
+con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+dbWriteTable(con, "int_films", films, overwrite=TRUE)
+dbDisconnect(conn=con, shutdown=TRUE)
+
+
+# Show what tables are in the database
+con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+dbExecute(con, "SHOW TABLES")
+dbDisconnect(conn=con, shutdown=TRUE)

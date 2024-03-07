@@ -1,0 +1,45 @@
+# api_wan() makes the api request for a resource (e.g. films) ------------------
+api_wan <- function(resource){
+  message(paste0('Extracting page 1 of ', resource))
+  # Get first page
+  swapi_url <- paste0("https://swapi.dev/api/", resource, "/")
+  response <- GET(swapi_url)
+  content <- fromJSON(rawToChar(response$content))
+  next_page <- content$`next`
+  data <- content$results
+  
+  # Get subsequent pages
+  page <- 1
+  while(!is.null(next_page)){
+    page <- page + 1
+    message(paste0('Extracting page ', page, ' of ', resource))
+    response <- GET(next_page)
+    content <- fromJSON(rawToChar(response$content))
+    next_page <- content$`next`
+    data <- rbind(data, content$results)
+  }
+  
+  data
+}
+
+
+# r2db() adds data to database -------------------------------------------------
+r2db <- function(data, table, db="swapi_db.duckdb", replace=TRUE){
+  
+  # For now, just remove the nested data
+  lists <- names(data)[sapply(data, class) == "list"]
+  data <- data[, !(names(data) %in% lists)]
+  
+  # Add data to db
+  con <- dbConnect(duckdb(), dbdir=db)
+  dbWriteTable(conn=con, name=table, value=data, overwrite=replace)
+  dbDisconnect(conn=con, shutdown=TRUE)
+}
+
+
+# loop_skywalker() repeats request and staging of raw data ---------------------
+loop_skywalker <- function(resources, prefix){
+  for(resource in resources){
+    r2db(api_wan(resource), paste0(prefix, '_', resource))
+  }
+}

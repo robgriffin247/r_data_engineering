@@ -1,0 +1,17 @@
+duck_get <- function(query){
+  on.exit(dbDisconnect(conn=con, shutdown=TRUE))
+  con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+  dbGetQuery(con, query)
+}
+
+duck_do <- function(query){
+  on.exit(dbDisconnect(conn=con, shutdown=TRUE))
+  con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+  dbExecute(con, query)
+}
+
+duck_write <- function(data, table, replace=TRUE){
+  on.exit(dbDisconnect(conn=con, shutdown=TRUE))
+  con <- dbConnect(duckdb(), dbdir="swapi_db.duckdb")
+  dbWriteTable(con, table, data, overwrite=replace)
+}

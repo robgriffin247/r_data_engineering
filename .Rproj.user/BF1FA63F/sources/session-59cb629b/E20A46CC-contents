@@ -1,0 +1,6 @@
+# loop_skywalker() repeats request and staging of raw data ---------------------
+loop_skywalker <- function(resources, prefix){
+  for(resource in resources){
+    r2db(api_wan(resource), paste0(prefix, '_', resource))
+  }
+}
